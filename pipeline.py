@@ -42,9 +42,10 @@ class Pipeline:
         "DONE",
     ]
 
-    def __init__(self, topic: str, output_dir) -> None:
+    def __init__(self, topic: str, output_dir, config: dict | None = None) -> None:
         self.topic = topic
         self.output_dir = Path(output_dir)
+        self.config = config or {}
         self._state_file = self.output_dir / "pipeline_state.json"
 
     # ------------------------------------------------------------------
@@ -123,7 +124,8 @@ class Pipeline:
         # ── SELECTING_MUSIC ────────────────────────────────────────────
         if current == "SELECTING_MUSIC":
             logger.info("Stage: SELECTING_MUSIC")
-            modules.music.run(None, self.output_dir)
+            music_path = modules.music.run(None, self.output_dir)
+            state["music_path"] = music_path
             state["stage"] = "ASSEMBLING"
             self._save_state(state)
             current = "ASSEMBLING"
@@ -136,6 +138,8 @@ class Pipeline:
                 str(self.output_dir / "narration.mp3"),
                 state.get("captions", []),
                 self.output_dir,
+                config=self.config,
+                music_path=state.get("music_path"),
             )
             state["stage"] = "THUMBNAILING"
             self._save_state(state)
@@ -146,7 +150,7 @@ class Pipeline:
             logger.info("Stage: THUMBNAILING")
             image_paths = state.get("image_paths", [])
             item_1_image = image_paths[0] if image_paths else ""
-            modules.thumbnail.run(item_1_image, self.topic, self.output_dir)
+            modules.thumbnail.run(item_1_image, self.topic, self.output_dir, config=self.config)
             state["stage"] = "METADATA"
             self._save_state(state)
             current = "METADATA"

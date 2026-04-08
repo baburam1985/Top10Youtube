@@ -4,9 +4,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-def run(image_path, topic, output_dir):
+def run(image_path, topic, output_dir, config=None):
     """
-    Composite a 1280x720 thumbnail JPEG with bold text overlay.
+    Composite a thumbnail JPEG with bold text overlay.
 
     Args:
         image_path: Path to source image (item_1.png).
@@ -19,8 +19,13 @@ def run(image_path, topic, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    cfg = (config or {}).get("thumbnail", {})
+    width = int(cfg.get("width", 1920))
+    height = int(cfg.get("height", 1080))
+    font_size = int(cfg.get("font_size_title", 110))
+
     img = Image.open(image_path).convert("RGB")
-    img = img.resize((1280, 720), Image.LANCZOS)
+    img = img.resize((width, height), Image.LANCZOS)
 
     draw = ImageDraw.Draw(img)
 
@@ -32,7 +37,7 @@ def run(image_path, topic, output_dir):
         "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
     ]:
         try:
-            font = ImageFont.truetype(font_path, 72)
+            font = ImageFont.truetype(font_path, font_size)
             break
         except (OSError, IOError):
             continue
@@ -43,8 +48,8 @@ def run(image_path, topic, output_dir):
     bbox = draw.textbbox((0, 0), text, font=font)
     text_w = bbox[2] - bbox[0]
     text_h = bbox[3] - bbox[1]
-    x = max(0, (1280 - text_w) // 2)
-    y = max(0, 720 - text_h - 60)
+    x = max(0, (width - text_w) // 2)
+    y = max(0, height - text_h - int(height * 0.08))
 
     # Drop shadow
     draw.text((x + 3, y + 3), text, fill=(0, 0, 0), font=font)

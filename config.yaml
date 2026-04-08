@@ -37,8 +37,8 @@ visuals:
   # Replicate model for image generation
   replicate_model: "black-forest-labs/flux-schnell"
   # Output resolution
-  width: 1280
-  height: 720
+  width: 1920
+  height: 1080
   # Max concurrent image generation requests
   max_concurrent: 5
   # Retry attempts per image on blank/error output
@@ -61,17 +61,17 @@ music:
 
 video:
   fps: 24
-  width: 1280
-  height: 720
+  width: 1920
+  height: 1080
   codec: libx264
   audio_codec: aac
   # Ken Burns effect max scale factor
   ken_burns_scale: 1.08
 
 thumbnail:
-  width: 1280
-  height: 720
-  font_size_title: 80
-  font_size_number: 60
+  width: 1920
+  height: 1080
+  font_size_title: 110
+  font_size_number: 80
   # Gradient overlay opacity (0.0–1.0)
   gradient_opacity: 0.55

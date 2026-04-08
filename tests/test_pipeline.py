@@ -243,3 +243,67 @@ class TestPipelineResumesFromCheckpoint:
 
         state = json.loads((tmp_output_dir / "pipeline_state.json").read_text())
         assert state["stage"] == "DONE"
+
+    @patch("pipeline.modules.metadata")
+    @patch("pipeline.modules.thumbnail")
+    @patch("pipeline.modules.assembler")
+    @patch("pipeline.modules.music")
+    @patch("pipeline.modules.captions")
+    @patch("pipeline.modules.visuals")
+    @patch("pipeline.modules.voice")
+    @patch("pipeline.modules.script")
+    @patch("pipeline.modules.research")
+    def test_pipeline_passes_config_to_assembler_and_thumbnail(
+        self,
+        mock_research,
+        mock_script,
+        mock_voice,
+        mock_visuals,
+        mock_captions,
+        mock_music,
+        mock_assembler,
+        mock_thumbnail,
+        mock_metadata,
+        tmp_output_dir,
+        sample_topic,
+        research_items,
+        script_output,
+        captions,
+    ):
+        """Pipeline forwards config and selected music path to downstream modules."""
+        from pipeline import Pipeline
+
+        config = {
+            "video": {"width": 1920, "height": 1080},
+            "thumbnail": {"width": 1920, "height": 1080},
+        }
+
+        mock_research.run.return_value = research_items
+        mock_script.run.return_value = script_output
+        mock_voice.run.return_value = None
+        mock_visuals.run.return_value = [
+            str(tmp_output_dir / f"item_{i}.png") for i in range(1, 11)
+        ]
+        mock_captions.run.return_value = captions
+        mock_music.run.return_value = str(tmp_output_dir / "music.mp3")
+        mock_assembler.run.return_value = None
+        mock_thumbnail.run.return_value = None
+        mock_metadata.run.return_value = {}
+
+        p = Pipeline(sample_topic, tmp_output_dir, config=config)
+        p.run()
+
+        mock_assembler.run.assert_called_once_with(
+            [str(tmp_output_dir / f"item_{i}.png") for i in range(1, 11)],
+            str(tmp_output_dir / "narration.mp3"),
+            captions,
+            tmp_output_dir,
+            config=config,
+            music_path=str(tmp_output_dir / "music.mp3"),
+        )
+        mock_thumbnail.run.assert_called_once_with(
+            str(tmp_output_dir / "item_1.png"),
+            sample_topic,
+            tmp_output_dir,
+            config=config,
+        )

@@ -148,8 +148,11 @@ def _overlay_frame_fn(
     - Rank badge (bottom-left) if rank is given
     - Active caption (bottom-center) based on global timestamp
     """
-    font_rank = _load_font(64)
-    font_cap = _load_font(38)
+    font_rank = _load_font(max(24, int(height * 0.09)))
+    font_cap = _load_font(max(18, int(height * 0.053)))
+
+    max_text_w = int(width * 0.9)
+    safe_bottom = int(height * 0.08)
 
     def make_frame(gf: Any, t: float) -> np.ndarray:
         frame: np.ndarray = gf(t)
@@ -169,21 +172,61 @@ def _overlay_frame_fn(
         for cap in captions:
             if cap["start"] <= global_t < cap["end"]:
                 cap_text = cap["text"]
-                bbox = draw.textbbox((0, 0), cap_text, font=font_cap)
-                tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-                cx = (width - tw) // 2
-                cy = height - 120
-                padding = 8
+                lines = _wrap_caption_lines(draw, cap_text, font_cap, max_text_w, max_lines=2)
+                line_h = draw.textbbox((0, 0), "Ag", font=font_cap)[3]
+                text_h = line_h * len(lines)
+                text_w = max(draw.textbbox((0, 0), ln, font=font_cap)[2] for ln in lines)
+                cx = (width - text_w) // 2
+                cy = height - safe_bottom - text_h
+                padding = int(height * 0.01)
                 draw.rectangle(
-                    [cx - padding, cy - padding, cx + tw + padding, cy + th + padding],
+                    [cx - padding, cy - padding, cx + text_w + padding, cy + text_h + padding],
                     fill=(0, 0, 0, 160),
                 )
-                draw.text((cx, cy), cap_text, font=font_cap, fill=(255, 255, 255))
+                for idx, ln in enumerate(lines):
+                    draw.text((cx, cy + idx * line_h), ln, font=font_cap, fill=(255, 255, 255))
                 break
 
         return np.array(img)
 
     return make_frame
+
+
+def _wrap_caption_lines(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font: ImageFont.ImageFont,
+    max_width: int,
+    max_lines: int = 2,
+) -> list[str]:
+    words = text.split()
+    lines: list[str] = []
+    current: list[str] = []
+
+    def width_of(s: str) -> int:
+        bbox = draw.textbbox((0, 0), s, font=font)
+        return bbox[2] - bbox[0]
+
+    for w in words:
+        candidate = (" ".join(current + [w])).strip()
+        if candidate and width_of(candidate) <= max_width:
+            current.append(w)
+            continue
+
+        if current:
+            lines.append(" ".join(current))
+            current = [w]
+        else:
+            lines.append(w)
+            current = []
+
+        if len(lines) >= max_lines:
+            break
+
+    if len(lines) < max_lines and current:
+        lines.append(" ".join(current))
+
+    return lines[:max_lines]
 
 
 # ---------------------------------------------------------------------------
@@ -215,10 +258,15 @@ def run(
     """
     cfg = (config or {}).get("video", {})
     fps = int(cfg.get("fps", _DEFAULT_FPS))
+    width = int(cfg.get("width", _DEFAULT_WIDTH))
+    height = int(cfg.get("height", _DEFAULT_HEIGHT))
     codec = cfg.get("codec", _DEFAULT_CODEC)
     audio_codec = cfg.get("audio_codec", _DEFAULT_AUDIO_CODEC)
     ken_burns_scale = float(cfg.get("ken_burns_scale", _DEFAULT_KEN_BURNS_SCALE))
     music_vol = float((config or {}).get("music", {}).get("music_volume", _DEFAULT_MUSIC_VOLUME))
+    audio_cfg = (config or {}).get("audio", {})
+    music_fade_in = float(audio_cfg.get("music_fade_in", 1.5))
+    music_fade_out = float(audio_cfg.get("music_fade_out", 2.0))
 
     num_images = len(image_paths)
     if num_images == 0:
@@ -247,9 +295,13 @@ def run(
         clip_start = i * seg_duration
 
         clip = moviepy.ImageClip(img_path, duration=seg_duration)
+        try:
+            clip = clip.resized((width, height))
+        except Exception:
+            pass
 
         # Apply Ken Burns (time-varying zoom) + rank overlay + captions in one pass
-        overlay_fn = _overlay_frame_fn(rank, captions, clip_start, _DEFAULT_WIDTH, _DEFAULT_HEIGHT)
+        overlay_fn = _overlay_frame_fn(rank, captions, clip_start, width, height)
         kb_fn = _ken_burns_frame_fn(seg_duration, ken_burns_scale)
 
         def make_combined_frame(gf: Any, t: float, _kb=kb_fn, _ov=overlay_fn) -> np.ndarray:
@@ -284,6 +336,10 @@ def run(
 
                 music = _cat_audio([music] * loops)
             music = music.subclipped(0, audio_duration)
+            try:
+                music = music.audio_fadein(music_fade_in).audio_fadeout(music_fade_out)
+            except Exception:
+                pass
             audio = moviepy.CompositeAudioClip([narration, music])
         except Exception as exc:
             logger.warning("Music mixing failed (%s); using narration-only audio", exc)

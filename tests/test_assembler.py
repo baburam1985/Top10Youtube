@@ -141,3 +141,76 @@ class TestFinalVideoDurationApproxNarrationDuration:
         run(image_paths, str(fake_mp3), captions, tmp_output_dir)
 
         mock_moviepy.AudioFileClip.assert_called_once_with(str(fake_mp3))
+
+    @patch("modules.assembler._overlay_frame_fn")
+    @patch("modules.assembler.get_audio_duration")
+    @patch("modules.assembler.moviepy")
+    def test_overlay_uses_configured_resolution(
+        self, mock_moviepy, mock_audio_dur, mock_overlay, tmp_output_dir, captions, fake_mp3
+    ):
+        """Overlay function receives width/height from config.video."""
+        from modules.assembler import run
+
+        image_paths = _make_image_paths(tmp_output_dir)
+        mock_audio_dur.return_value = NARRATION_DURATION
+
+        mock_clip = MagicMock()
+        mock_clip.write_videofile = MagicMock(
+            side_effect=lambda path, **kw: Path(path).write_bytes(b"FAKE_MP4")
+        )
+        mock_moviepy.ImageClip.return_value = mock_clip
+        mock_moviepy.concatenate_videoclips.return_value = mock_clip
+        mock_moviepy.AudioFileClip.return_value = MagicMock()
+        mock_overlay.return_value = lambda gf, t: gf(t)
+
+        run(
+            image_paths,
+            str(fake_mp3),
+            captions,
+            tmp_output_dir,
+            config={"video": {"width": 1920, "height": 1080}},
+        )
+
+        first_call = mock_overlay.call_args_list[0]
+        assert first_call.args[3] == 1920
+        assert first_call.args[4] == 1080
+
+    @patch("modules.assembler.get_audio_duration")
+    @patch("modules.assembler.moviepy")
+    def test_music_fades_are_applied_when_music_present(
+        self, mock_moviepy, mock_audio_dur, tmp_output_dir, captions, fake_mp3
+    ):
+        """Assembler applies deterministic fade-in/out to background music."""
+        from modules.assembler import run
+
+        image_paths = _make_image_paths(tmp_output_dir)
+        mock_audio_dur.return_value = NARRATION_DURATION
+
+        video_clip = MagicMock()
+        video_clip.write_videofile = MagicMock(
+            side_effect=lambda path, **kw: Path(path).write_bytes(b"FAKE_MP4")
+        )
+        mock_moviepy.ImageClip.return_value = video_clip
+        mock_moviepy.concatenate_videoclips.return_value = video_clip
+
+        narration = MagicMock()
+        music = MagicMock()
+        music.duration = 120
+        music.multiply_volume.return_value = music
+        music.subclipped.return_value = music
+        music.audio_fadein.return_value = music
+        music.audio_fadeout.return_value = music
+        mock_moviepy.AudioFileClip.side_effect = [narration, music]
+        mock_moviepy.CompositeAudioClip.return_value = MagicMock()
+
+        run(
+            image_paths,
+            str(fake_mp3),
+            captions,
+            tmp_output_dir,
+            config={"audio": {"music_fade_in": 1.5, "music_fade_out": 2.0}},
+            music_path=str(tmp_output_dir / "music.mp3"),
+        )
+
+        music.audio_fadein.assert_called_once_with(1.5)
+        music.audio_fadeout.assert_called_once_with(2.0)

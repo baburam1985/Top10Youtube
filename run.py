@@ -92,7 +92,7 @@ def main() -> None:
         shutil.rmtree(output_dir)
 
     logger.info("Starting pipeline for topic: %s", args.topic)
-    p = Pipeline(args.topic, output_dir)
+    p = Pipeline(args.topic, output_dir, config=config)
     try:
         p.run()
         final_video = output_dir / "final_video.mp4"

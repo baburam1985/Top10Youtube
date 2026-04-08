@@ -2,7 +2,7 @@
 
 Contract: thumbnail.run(item_1_image_path, topic, output_dir)
   - Produces output_dir/thumbnail.jpg
-  - Dimensions exactly 1280×720
+  - Dimensions exactly 1920×1080
   - Contains visible text overlay (non-uniform pixel values)
 
 No external APIs required. Uses Pillow only.
@@ -19,17 +19,17 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture
 def item_1_image(tmp_output_dir):
-    """Create a 1280×720 source image for the thumbnail."""
+    """Create a 1920×1080 source image for the thumbnail."""
     from PIL import Image
 
     path = tmp_output_dir / "images" / "item_1.png"
     path.parent.mkdir(parents=True, exist_ok=True)
-    Image.new("RGB", (1280, 720), color=(50, 80, 120)).save(str(path))
+    Image.new("RGB", (1920, 1080), color=(50, 80, 120)).save(str(path))
     return path
 
 
 class TestThumbnailDimensions:
-    """thumbnail.run() produces a 1280×720 JPEG."""
+    """thumbnail.run() produces a 1920×1080 JPEG."""
 
     def test_thumbnail_file_created(self, item_1_image, tmp_output_dir, sample_topic):
         """thumbnail.jpg is written to the output directory."""
@@ -39,8 +39,8 @@ class TestThumbnailDimensions:
 
         assert (tmp_output_dir / "thumbnail.jpg").exists()
 
-    def test_thumbnail_is_1280x720(self, item_1_image, tmp_output_dir, sample_topic):
-        """Output thumbnail has dimensions exactly 1280×720."""
+    def test_thumbnail_is_1920x1080(self, item_1_image, tmp_output_dir, sample_topic):
+        """Output thumbnail has dimensions exactly 1920×1080."""
         from PIL import Image
 
         from modules.thumbnail import run
@@ -48,7 +48,7 @@ class TestThumbnailDimensions:
         run(str(item_1_image), sample_topic, tmp_output_dir)
 
         img = Image.open(tmp_output_dir / "thumbnail.jpg")
-        assert img.size == (1280, 720), f"Expected (1280, 720), got {img.size}"
+        assert img.size == (1920, 1080), f"Expected (1920, 1080), got {img.size}"
 
     def test_thumbnail_is_jpeg(self, item_1_image, tmp_output_dir, sample_topic):
         """Output file is a valid JPEG."""
@@ -86,7 +86,7 @@ class TestThumbnailDimensions:
         # Use a distinctive red source image
         red_path = tmp_output_dir / "images" / "item_1_red.png"
         red_path.parent.mkdir(parents=True, exist_ok=True)
-        Image.new("RGB", (1280, 720), color=(200, 10, 10)).save(str(red_path))
+        Image.new("RGB", (1920, 1080), color=(200, 10, 10)).save(str(red_path))
 
         run(str(red_path), sample_topic, tmp_output_dir)
 
