@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+
+.env
+.venv/
+venv/
+
+output/
+
+.omc/
+.claude/
+qa_screenshots/
+
+.pytest_cache/
+.ruff_cache/

@@ -1,0 +1,77 @@
+# Top 10 YouTube Video Generator — Configuration
+
+pipeline:
+  # Maximum retries for each stage before hard failure
+  max_retries: 3
+  # Resume from checkpoint if pipeline_state.json exists
+  resume_on_crash: true
+
+research:
+  # Number of ranked items to produce
+  item_count: 10
+  # Tavily search depth: "basic" or "advanced"
+  tavily_search_depth: advanced
+  # Number of search queries to run (results merged + deduped)
+  num_queries: 3
+
+script:
+  # Target word count per segment (~40 words = ~20s narration)
+  words_per_segment: 40
+  # Intro duration target (seconds)
+  intro_target_seconds: 15
+  # Outro / CTA duration target (seconds)
+  outro_target_seconds: 10
+  model: claude-3-5-sonnet-20241022
+
+voice:
+  # ElevenLabs voice ID — default is "Rachel" (warm, professional)
+  voice_id: "21m00Tcm4TlvDq8ikWAM"
+  model_id: eleven_turbo_v2_5
+  # Output sample rate
+  output_format: mp3_44100_128
+  # Stability / similarity boost (0.0–1.0)
+  stability: 0.5
+  similarity_boost: 0.75
+
+visuals:
+  # Replicate model for image generation
+  replicate_model: "black-forest-labs/flux-schnell"
+  # Output resolution
+  width: 1280
+  height: 720
+  # Max concurrent image generation requests
+  max_concurrent: 5
+  # Retry attempts per image on blank/error output
+  max_retries: 3
+
+captions:
+  # whisper model size: tiny, base, small, medium, large
+  whisper_model: tiny
+  # Max words per caption chunk
+  max_words_per_chunk: 5
+
+music:
+  # Freesound search query
+  search_query: "epic cinematic background"
+  # Filter by license (cc0 = public domain)
+  license: cc0
+  # Narration vs music volume ratio (0.0–1.0, narration dominant)
+  narration_volume: 1.0
+  music_volume: 0.15
+
+video:
+  fps: 24
+  width: 1280
+  height: 720
+  codec: libx264
+  audio_codec: aac
+  # Ken Burns effect max scale factor
+  ken_burns_scale: 1.08
+
+thumbnail:
+  width: 1280
+  height: 720
+  font_size_title: 80
+  font_size_number: 60
+  # Gradient overlay opacity (0.0–1.0)
+  gradient_opacity: 0.55

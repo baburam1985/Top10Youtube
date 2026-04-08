@@ -1,0 +1,12 @@
+[
+  {"rank": 1, "title": "The Blue Whale", "facts": "Largest animal ever at 30m long, 200 tons", "hook_line": "So massive it makes elephants look like toys"},
+  {"rank": 2, "title": "The Saltwater Crocodile", "facts": "Largest reptile, 1,000 PSI bite force", "hook_line": "A prehistoric predator that hasn't needed to evolve"},
+  {"rank": 3, "title": "The Box Jellyfish", "facts": "Most venomous marine animal, 60 tentacles", "hook_line": "Nearly invisible and deadly within minutes"},
+  {"rank": 4, "title": "The African Elephant", "facts": "Largest land animal at 6 tons, highly intelligent", "hook_line": "The gentle giant that can charge at 25 mph"},
+  {"rank": 5, "title": "The Siberian Tiger", "facts": "Largest cat, 300 kg, top ambush predator", "hook_line": "A ghost of the taiga that strikes before you see it"},
+  {"rank": 6, "title": "The Polar Bear", "facts": "Can smell prey 20 miles away, 700 kg", "hook_line": "The Arctic's apex predator that swims for days"},
+  {"rank": 7, "title": "The Great White Shark", "facts": "Detects blood in 1 part per million, 300 teeth", "hook_line": "Nature's perfect killing machine for 400 million years"},
+  {"rank": 8, "title": "The Golden Poison Frog", "facts": "2 micrograms of batrachotoxin can kill a human", "hook_line": "The most toxic animal on Earth fits in your palm"},
+  {"rank": 9, "title": "The Harpy Eagle", "facts": "Talons larger than grizzly claws, 2m wingspan", "hook_line": "The apex aerial predator of the Amazon canopy"},
+  {"rank": 10, "title": "The Mantis Shrimp", "facts": "Strike at 23 m/s, 16 types of color receptors", "hook_line": "A shrimp that can punch through aquarium glass"}
+]
