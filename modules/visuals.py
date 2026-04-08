@@ -74,10 +74,6 @@ def _generate_and_save_image(
     height: int = 720,
 ) -> Path:
     """Call Replicate to generate an image and save it to out_path."""
-    if out_path.exists():
-        logger.debug("Skipping existing image: %s", out_path.name)
-        return out_path
-
     result = replicate_client.run(
         _REPLICATE_MODEL,
         input={
