@@ -1,4 +1,5 @@
 """Background music selection module."""
+
 from pathlib import Path
 
 

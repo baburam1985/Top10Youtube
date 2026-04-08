@@ -1,4 +1,5 @@
 """YouTube metadata generation module."""
+
 import json
 from pathlib import Path
 

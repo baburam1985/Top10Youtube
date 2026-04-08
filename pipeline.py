@@ -7,6 +7,7 @@ State machine:
 
 Checkpoint file: output_dir/pipeline_state.json
 """
+
 from __future__ import annotations
 
 import json

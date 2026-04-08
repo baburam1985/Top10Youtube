@@ -8,7 +8,6 @@ Contract: thumbnail.run(item_1_image_path, topic, output_dir)
 No external APIs required. Uses Pillow only.
 """
 
-
 import pytest
 
 pytestmark = pytest.mark.skipif(

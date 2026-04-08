@@ -1,4 +1,5 @@
 """Thumbnail generation module."""
+
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont

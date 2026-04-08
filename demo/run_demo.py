@@ -24,6 +24,7 @@ Usage:
     python demo/run_demo.py --topic "Top 10 Ocean Mysteries"
     python demo/run_demo.py --clean   # wipe demo/output first
 """
+
 from __future__ import annotations
 
 import argparse
