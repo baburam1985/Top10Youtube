@@ -11,6 +11,8 @@ moviepy and ffmpeg are mocked; duration checks use mocked probe data.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
+
 NARRATION_DURATION = 45.0  # seconds — simulated
 
 
@@ -214,3 +216,22 @@ class TestFinalVideoDurationApproxNarrationDuration:
 
         music.audio_fadein.assert_called_once_with(1.5)
         music.audio_fadeout.assert_called_once_with(2.0)
+
+
+def test_overlay_skips_whitespace_only_caption_without_crashing():
+    """Overlay should safely ignore active captions that wrap to zero lines."""
+    from modules.assembler import _overlay_frame_fn
+
+    width, height = 1280, 720
+    frame = np.zeros((height, width, 3), dtype=np.uint8)
+    overlay = _overlay_frame_fn(
+        rank=1,
+        captions=[{"text": "   ", "start": 0.0, "end": 1.0}],
+        clip_start_t=0.0,
+        width=width,
+        height=height,
+    )
+
+    out = overlay(lambda _t: frame, 0.5)
+
+    assert out.shape == frame.shape

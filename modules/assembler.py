@@ -173,6 +173,10 @@ def _overlay_frame_fn(
             if cap["start"] <= global_t < cap["end"]:
                 cap_text = cap["text"]
                 lines = _wrap_caption_lines(draw, cap_text, font_cap, max_text_w, max_lines=2)
+                if not lines:
+                    # Whitespace-only captions can produce zero wrapped lines.
+                    # Skip drawing instead of crashing on max() over an empty sequence.
+                    break
                 line_h = draw.textbbox((0, 0), "Ag", font=font_cap)[3]
                 text_h = line_h * len(lines)
                 text_w = max(draw.textbbox((0, 0), ln, font=font_cap)[2] for ln in lines)
